@@ -1,0 +1,4 @@
+conf.ini
+*.json
+*.log
+*.pyc

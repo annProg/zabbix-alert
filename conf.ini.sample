@@ -1,0 +1,61 @@
+[cmdb]
+api = http://cmdb.xxx/api/public.php
+iptype = default,disk,cpuload,zabbix自动注册
+url = http://cmdb.xxx
+
+[mailserver]
+server = localhost
+user = monitor
+postfix = localhost
+passwd = paxxxxxx
+
+[http_mail]
+mail_api = http://monitor.com/api/mail
+mail_attach = http://monitor.com/api/attachmail
+from = monitor@xxx.com
+; graphviz绘图方向阈值，大于阈值LR，小于阈值TB(或相反)
+dir_threshold = 2
+
+[send]
+; 逗号分隔
+mail_suffix = @qq.com
+mailto_list = abc@qq.com,cba@qq.com
+mailcc_list = def@qq.com,jack@qq.com
+weixin_list = abc,cba
+sms_list = 13000000000,13000000001
+
+
+[sms]
+addr = http://sms.com/message
+user_name = username
+pass_md5 = password
+
+[weixin]
+corpid = coprid
+secret = secret
+token = token
+
+[folder]
+folder_queue = queue
+folder_newalert = new
+folder_oldalert = old
+folder_logs = logs
+folder_failed = failed
+
+[dashboard]
+url = http://monitor.xxxxxx.cn/dashboard/db/url
+app = http://monitor.xxxxxx.cn/dashboard/db/app
+server = http://monitor.xxxxxx.cn/dashboard/db/server
+dashhome = http://monitor.xxxxxx.cn/
+home = http://monitor.xxxxxx.cn:81/
+team = 运维组
+
+[ack]
+sk = skkjkjidoisjijidjsakofjdksajfkd
+acklink = http://127.0.0.1/index.php
+acktype = 0
+ackinfo = 已收到报警请勿再发
+
+; misc config
+[misc]
+name_replace = .xxx.com
