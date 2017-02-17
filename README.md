@@ -19,3 +19,7 @@
 使用 <https://github.com/iambocai/mailer> 在多台机器上搭建并使用Nginx做负载均衡，避免单台机器发送频率过快被对方服务器限制。
 
 如使用本地smtp，建议使用postfix搭建。sendmail会出现 `unencrypted connection` 错误。原因尚未调查。
+
+## 合并效果预览
+
+![](preview/alert-reduce.png)
