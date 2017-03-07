@@ -26,6 +26,9 @@ import re
 from PIL import Image
 from io import BytesIO
 import hashlib
+from influxdb import InfluxDBClient
+import copy
+
 
 #解析配置文件
 config = configparser.ConfigParser()
@@ -109,26 +112,27 @@ def genAckLink(msg):
 
 def Http_Mail(emails, msg, filelist):
 	sub = status + ": " + msg['主题']
-	linkimg = msg['关联图']
+	newmsg = copy.deepcopy(msg)
+	linkimg = newmsg['关联图']
 	itemvalue = {}
-	itemvalue['数据'] = msg['数据']
-	del msg['关联图']
-	del msg['数据']
+	itemvalue['数据'] = newmsg['数据']
+	del newmsg['关联图']
+	del newmsg['数据']
 
 	pre = "详情请登录 <a href=\"" + dashhome + "\">" + dashhome + "</a><br/><hr>"
 	if status != "OK":
-		ackurl = genAckLink(msg)
+		ackurl = genAckLink(newmsg)
 		if ackurl != "":
 			pre = '<p><a href="' + ackurl + '">' + ackinfo + '</a></p>' + pre
 	try:
-		del msg['eventid']
+		del newmsg['eventid']
 	except:
 		pass
 
 	build_direction = "LEFT_TO_RIGHT"
 	table_attributes = {"style": "width:100%", "border": "1"}
 	#table_attributes = {"style": "width:100%;border:1px solid #000;", "border": "1"}
-	html = convert(msg, build_direction=build_direction, table_attributes=table_attributes)
+	html = convert(newmsg, build_direction=build_direction, table_attributes=table_attributes)
 	html_data = convert(itemvalue, build_direction=build_direction, table_attributes=table_attributes)
 	html = "<h3>基本信息</h3>" + html + "<br><h3>监控项数据</h3>" + html_data
 
@@ -187,6 +191,37 @@ def killOneLineMsg(msg):
 		msg['数据'].append(newitem)
 	return(msg)
 
+def influxDB(contact, msg, sendtype="mail"):
+	client = InfluxDBClient(config.get("influxdb", "server"), config.get("influxdb", "port"), \
+			config.get("influxdb","user"), config.get("influxdb", "passwd"), config.get("influxdb","database"))
+	client.create_database(config.get("influxdb", "database"))
+	
+	duration = msg["数据"][0]["故障时长"].split(">")[1].split("<")[0]
+	if "IP" in msg:
+		name = msg['IP'].replace("\n", ",")
+	else:
+		name = msg['名称'].replace("\n", ",")
+
+	for item in contact.split(","):
+		item = item.replace(mail_suffix,"")
+		json_body = [{
+					"measurement":"alert",
+					"tags": {
+						"sendtype":sendtype,
+						"subject":msg['主题'],
+						"owner":item,
+						"alerttype":msg['类型'],
+						"status":status,
+						"level":msg['严重性']
+						},
+					"fields": {
+							"value": 1,
+							"duration":duration,
+							"name":name
+						}
+					}]
+		client.write_points(json_body)
+		
 def sendAlert(contact,msg, filelist=[]):
 	emails = ",".join(list(set(",".join(contact['email']).split(","))))
 	# mobiles 必须去重，公司的短信接口，同一次调用如果有相同的手机号，会返回000018(1分钟频率限制)
@@ -195,9 +230,11 @@ def sendAlert(contact,msg, filelist=[]):
 	weixin = re.sub('\d', '', weixin)
 	severity = msg['严重性']
 
+	msg['名称'] = msg['名称'].replace("\n", "<br>")
 	weixin_exclue = ['Notice']
 	if severity not in weixin_exclue:
 		weret = Weixin(weixin, msg)
+		influxDB(emails, msg, "weixin")
 		if weret['errcode'] != 0:
 			msg['附加信息2'] = "微信发送失败，请关注公众号"
 
@@ -205,10 +242,11 @@ def sendAlert(contact,msg, filelist=[]):
 	if severity in sms_severity:
 		if mobiles:
 			SMS(mobiles, msg)
+			influxDB(emails, msg, "sms")
 		else:
 			msg['附加信息'] = "短信号码为空！请登录CMDB设置手机号，以便接收短信报警"
-	msg['名称'] = msg['名称'].replace("\n", "<br>")
 	Http_Mail(emails, msg, filelist)
+	influxDB(emails, msg, "mail")
 
 def getDashBoard(msg):
 	if msg['类型'] == "app":

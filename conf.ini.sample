@@ -56,6 +56,13 @@ acklink = http://127.0.0.1/index.php
 acktype = 0
 ackinfo = 已收到报警请勿再发
 
+[influxdb]
+server = localhost
+port = 8086
+user = 
+passwd = 
+database = alertlog
+
 ; misc config
 [misc]
 name_replace = .xxx.com
