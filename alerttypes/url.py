@@ -16,8 +16,10 @@ import sys
 import re
 
 #解析配置文件
+cwd = os.path.split(os.path.realpath(__file__))[0]
+cfg = cwd + "/../conf.ini"
 config = configparser.ConfigParser()
-config.read("conf.ini")   # 注意这里必须是绝对路径
+config.read(cfg)   # 注意这里必须是绝对路径
 
 cmdb_url=config.get("cmdb", "url")
 
