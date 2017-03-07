@@ -191,12 +191,20 @@ def killOneLineMsg(msg):
 		msg['数据'].append(newitem)
 	return(msg)
 
+def convertDuration(duration):
+	p = re.compile(r'd|h')
+	news = re.sub(p, '#', re.sub('m| ', '', duration)).split("#")[::-1]
+	news.extend(["0","0"])
+	news = news[0:3:1]
+	return(float(news[0]) + float(news[1])*60 + float(news[2])*1440)
+
 def influxDB(contact, msg, sendtype="mail"):
 	client = InfluxDBClient(config.get("influxdb", "server"), config.get("influxdb", "port"), \
 			config.get("influxdb","user"), config.get("influxdb", "passwd"), config.get("influxdb","database"))
 	client.create_database(config.get("influxdb", "database"))
 	
 	duration = msg["数据"][0]["故障时长"].split(">")[1].split("<")[0]
+	duration = convertDuration(duration)
 	if "IP" in msg:
 		name = msg['IP'].replace("\n", ",")
 	else:
@@ -212,12 +220,12 @@ def influxDB(contact, msg, sendtype="mail"):
 						"owner":item,
 						"alerttype":msg['类型'],
 						"status":status,
+						"name":name,
 						"level":msg['严重性']
 						},
 					"fields": {
 							"value": 1,
 							"duration":duration,
-							"name":name
 						}
 					}]
 		client.write_points(json_body)
@@ -246,7 +254,7 @@ def sendAlert(contact,msg, filelist=[]):
 		else:
 			msg['附加信息'] = "短信号码为空！请登录CMDB设置手机号，以便接收短信报警"
 	Http_Mail(emails, msg, filelist)
-	influxDB(emails, msg, "mail")
+	influxDB(emails, msg, 'mail')
 
 def getDashBoard(msg):
 	if msg['类型'] == "app":
