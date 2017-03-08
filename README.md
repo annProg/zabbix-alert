@@ -23,3 +23,8 @@
 ## 合并效果预览
 
 ![](preview/alert-reduce.png)
+
+## 报警统计
+报警数据push到InfluxDB,用Grafana可以展示报警数据，例如小时报警量，天报警量，周报警量，报警接收人排行，报警类型排行等等
+
+![](preview/alertlog.png)
