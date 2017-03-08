@@ -236,6 +236,10 @@ def influxDB(contact, msg, sendtype="mail"):
 	for item in ownerlist:
 		json_body = [{"measurement":"ownercount","tags":{"owner":item,"sendtype":sendtype},"fields":{"value":1}}]
 		client.write_points(json_body)
+
+	#报警量统计(以'\n'拆分name之后，导致发送量统计增多，因此这里单独把发送量拿出来统计)
+	json_body = [{"measurement":"sendcount", "tags":{"sendtype":sendtype},"fields":{"value":1}}]
+	client.write_points(json_body)
 		
 def sendAlert(contact,msg, filelist=[]):
 	emails = ",".join(list(set(",".join(contact['email']).split(","))))
