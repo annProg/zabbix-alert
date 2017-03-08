@@ -206,29 +206,31 @@ def influxDB(contact, msg, sendtype="mail"):
 	duration = msg["数据"][0]["故障时长"].split(">")[1].split("<")[0]
 	duration = convertDuration(duration)
 	if "IP" in msg:
-		name = msg['IP'].replace("\n", ",")
+		name = msg['IP'].split("\n")
 	else:
-		name = msg['名称'].replace("\n", ",")
+		name = msg['名称'].split("\n")
 
 	ownerlist = sorted(contact.replace(mail_suffix, "").split(","))
 	owner = ",".join(ownerlist)
-	json_body = [{
-				"measurement":"alert",
-				"tags": {
-					"sendtype":sendtype,
-					"subject":msg['主题'],
-					"owner":owner,
-					"alerttype":msg['类型'],
-					"status":status,
-					"name":name,
-					"level":msg['严重性']
-					},
-				"fields": {
-						"value": 1,
-						"duration":duration,
-					}
-				}]
-	client.write_points(json_body)
+
+	for item in name:
+		json_body = [{
+					"measurement":"alert",
+					"tags": {
+						"sendtype":sendtype,
+						"subject":msg['主题'],
+						"owner":owner,
+						"alerttype":msg['类型'],
+						"status":status,
+						"name":item,
+						"level":msg['严重性']
+						},
+					"fields": {
+							"value": 1,
+							"duration":duration,
+						}
+					}]
+		client.write_points(json_body)
 
 	# 以个人为单位统计报警量
 	for item in ownerlist:
