@@ -66,3 +66,4 @@ database = alertlog
 ; misc config
 [misc]
 name_replace = .xxx.com
+debug = True

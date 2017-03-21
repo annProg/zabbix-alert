@@ -28,6 +28,8 @@ from io import BytesIO
 import hashlib
 from influxdb import InfluxDBClient
 import copy
+import datetime
+import time
 
 
 #解析配置文件
@@ -48,6 +50,31 @@ acktype=config.get("ack", "acktype")
 ackinfo=config.get("ack", "ackinfo")
 mail_suffix=config.get("send", "mail_suffix")
 name_replace=config.get("misc", "name_replace")
+debug=config.getboolean("misc", "debug")
+
+# 打印函数运行时间
+def fn_timer(debug=False):
+	def _timer(function):
+		if not debug:
+			return(function)
+		def function_timer(*args, **kwargs):
+			t0 = time.time()
+			result = function(*args, **kwargs)
+			t1 = time.time()
+			print("%s: %s seconds" % (function.__name__, str(t1-t0)))
+			return(result)
+		return function_timer
+	return _timer
+
+# 打印函数返回值
+def fn_print(debug=False):
+	def _print(function):
+		if not debug:
+			return(function)
+		def function_print(*args, **kwargs):
+			print(function(*args, **kwargs))
+		return function_print
+	return _print
 
 def getConf(section, option):
 	try:
@@ -58,6 +85,7 @@ def getConf(section, option):
 
 iptype = getConf("cmdb", "iptype").split(",")
 
+@fn_timer(debug)
 def getContact(citype, civalue, rankdir="TB", ips=""):
 	values = civalue
 	direction = "down"
@@ -110,6 +138,7 @@ def genAckLink(msg):
 	except:
 		return("")
 
+@fn_timer(debug)
 def Http_Mail(emails, msg, filelist):
 	sub = status + ": " + msg['主题']
 	newmsg = copy.deepcopy(msg)
@@ -153,6 +182,7 @@ def Mail(emails, msg):
 	html = pre + html + suffix
 	send_mail(emails, sub, html, 1)
 
+@fn_timer(debug)
 def SMS(mobiles, msg):
 	values = []
 	for item in msg['数据']:
@@ -167,6 +197,7 @@ def SMS(mobiles, msg):
 		"详情请查看邮件"
 	send_sms(mobiles, content)
 
+@fn_timer(debug)
 def Weixin(weixin, msg):
 	values = []
 	for item in msg['数据']:
@@ -198,6 +229,45 @@ def convertDuration(duration):
 	news = news[0:3:1]
 	return(float(news[0]) + float(news[1])*60 + float(news[2])*1440)
 
+# 多台负载均衡上的同一个服务报警如果未压缩在同一封OK邮件中，会导致故障次数和时长偏大。这个函数处理这种情况
+# 本次报警的time 减去 此subject最后一个OK的time如果小于本地报警的duration，那么丢弃本次OK数据
+@fn_timer(debug)
+@fn_print(debug)
+def filter(json_body, client):
+	measurement = json_body[0]["measurement"]
+	status = json_body[0]["tags"]["status"]
+	alerttype = json_body[0]["tags"]["alerttype"]
+	subject = json_body[0]["tags"]["subject"]
+	sendtype = json_body[0]["tags"]["sendtype"]
+	duration = json_body[0]["fields"]["duration"]
+	
+	# 只处理APP类型报警
+	if status != "OK" or alerttype != "app":
+		client.write_points(json_body)
+		return "Not OK or Not app. write_points"
+
+	sql = 'SELECT "duration" from ' + measurement + ' WHERE subject = \'' + subject + '\' AND status = \'' + \
+			status + '\' AND sendtype = \'' + sendtype + '\' ORDER BY DESC limit 1'
+	ret = client.query(sql)
+	try:
+		ret = list(ret)[0][0]
+	except:
+		client.write_points(json_body)
+		return("parse ret error. write_points") 
+
+	dt = ret['time'].split(".")[0]
+	timeArray = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
+	ts = time.mktime(timeArray.timetuple()) - time.timezone
+	t_now = time.time()
+
+	max_duration = (t_now - ts)/60
+	if max_duration < duration:
+		return("max_duration < duration. not write")
+	else:
+		client.write_points(json_body)
+		return("write_points")
+	
+@fn_timer(debug)
 def influxDB(contact, msg, sendtype="mail"):
 	client = InfluxDBClient(config.get("influxdb", "server"), config.get("influxdb", "port"), \
 			config.get("influxdb","user"), config.get("influxdb", "passwd"), config.get("influxdb","database"))
@@ -230,7 +300,7 @@ def influxDB(contact, msg, sendtype="mail"):
 							"duration":duration,
 						}
 					}]
-		client.write_points(json_body)
+		filter(json_body, client)
 
 	# 以个人为单位统计报警量
 	for item in ownerlist:

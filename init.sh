@@ -18,10 +18,10 @@ if [ "$1"x = "init"x ];then
 elif [ "$1"x = "cron"x ];then
 	cat >>/etc/crontab<<EOF
 # zabbix-alert定时发告警
-* * * * * root $basedir/cron.sh
-* * * * * root sleep 15;$basedir/cron.sh
-* * * * * root sleep 30;$basedir/cron.sh
-* * * * * root sleep 45;$basedir/cron.sh
+* * * * * root $basedir/cron.sh &>/dev/null
+* * * * * root sleep 15;$basedir/cron.sh &>/dev/null
+* * * * * root sleep 30;$basedir/cron.sh &>/dev/null
+* * * * * root sleep 45;$basedir/cron.sh &>/dev/null
 EOF
 elif [ "$1"x = "monit"x ];then
 	echo "queue: `ls queue |wc -l`"
