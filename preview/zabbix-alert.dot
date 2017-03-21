@@ -1,0 +1,49 @@
+digraph zabbix_alert {
+	rank="same";
+	rankdir = TB;
+	fontname = "Courier New, SimSun";
+	fontsize = "11";
+	node [shape=Mrecord,fontname="MONACO,Courier New,SimSun"];
+	edge [fontname="Courier New,SimSun", fontsize="9"];
+
+	reduce[shape="component", label="reduce.py"];
+	alert[shape="component", label="alert.py"];
+	cmdb[shape="cylinder", label="cmdbApi", style="filled", fillcolor="skyblue"];
+	
+	msg [shape="none", label="{'date':'{DATE}', 'time':'{TIME}', \n'itemid':'{ITEM.ID}',\n'actionid':'{ACTION.ID}'...",fontsize=8];
+	msg -> reduce;
+	reduce-> alerttype[label="调用"];
+	db[shape="note", label="json_file_db"];
+	
+	alerttype[color="skyblue", shape="plaintext", label=<<table>
+		<tr><td bgcolor="skyblue">alerttype</td></tr>
+		<tr><td>app</td></tr>
+		<tr><td>disk</td></tr>
+		<tr><td>url</td></tr>
+		<tr><td>default</td></tr>
+		<tr><td>...</td></tr></table>>
+	];
+	reduce -> db[label="根据alerttype定义\n的规则生成合并数据\n(json文件)"];
+	cmdb->alert[label="提供报警联系人接口"];
+	
+	subgraph cluster_cron {
+		label="cron控制定时扫描报警数据";
+		cron[shape="component", label="cron.sh"];
+		new[shape="folder",label="new/",fillcolor="yellow", style="filled"];
+		queue[shape="folder",label="queue/"];
+		old[shape="folder",label="old/"];
+		failed[shape="folder",label="failed/"];
+		new->queue[label="mv到发送队列"];
+		queue -> old[label="完成"];
+		cron->new[label="扫描"];
+		queue -> failed[label="发送失败"];
+		alert -> queue[label="发送"];
+	}
+	new_fold[shape="folder",label="new/", fillcolor="yellow", style="filled"];
+	db -> new_fold[label="报警数据存储"];
+	
+	influx[shape="cylinder", label="InfluxDB", style="filled", fillcolor="skyblue"];
+	alert->influx[label="报警统计"];
+	grafana[label="Grafana", style="filled", fillcolor="skyblue"];
+	influx->grafana[label="展示"];
+}
