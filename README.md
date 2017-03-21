@@ -33,3 +33,6 @@
 报警数据push到InfluxDB,用Grafana可以展示报警数据，例如小时报警量，天报警量，周报警量，报警接收人排行，报警类型排行等等
 
 ![](preview/alertlog.png)
+
+## 附录
+报警联系人查询接口(cmdbApi)基于iTop实现，链接：[https://github.com/annProg/cmdbApi](https://github.com/annProg/cmdbApi)。
