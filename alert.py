@@ -54,6 +54,7 @@ debug=config.getboolean("misc", "debug")
 
 build_direction=config.get("http_mail", "build_direction")
 table_attributes=json.loads(config.get("http_mail", "table_attributes"))
+show_linkimg = config.getboolean("http_mail", "linkimg")
 
 # 打印函数运行时间
 def fn_timer(debug=False):
@@ -166,8 +167,9 @@ def Http_Mail(emails, msg, filelist):
 
 	html = convert(newmsg, build_direction=build_direction, table_attributes=table_attributes)
 	html_data = convert(itemvalue, build_direction=build_direction, table_attributes=table_attributes)
-	html_first = '<table><tr><td style="width:60%">' + html + '</td><td style="width:40%">' + linkimg + "</td></tr></table>"
-	html = "<h3>基本信息</h3>" + html_first + "<br><h3>监控项数据</h3>" + html_data
+	if show_linkimg:
+		html = '<table><tr><td style="width:60%">' + html + '</td><td style="width:40%">' + linkimg + "</td></tr></table>"
+	html = "<h3>基本信息</h3>" + html + "<br><h3>监控项数据</h3>" + html_data
 
 	link = "<p><h3>报警对象影响范围图</h3></p><p>" + linkimg + "</p>"
 	suffix = "<br><p><hr><b>" + team + "</b><br>主页: <a href=\"" + home + "\">" + home + "<br><hr><br></p>"
