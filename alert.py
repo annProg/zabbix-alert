@@ -159,7 +159,7 @@ def Http_Mail(emails, msg, filelist):
 		pass
 
 	build_direction = "LEFT_TO_RIGHT"
-	table_attributes = {"style": "width:100%", "border": "1"}
+	table_attributes = {"style": "width:100%;border-collapse:collapse", "border": "1"}
 	#table_attributes = {"style": "width:100%;border:1px solid #000;", "border": "1"}
 	html = convert(newmsg, build_direction=build_direction, table_attributes=table_attributes)
 	html_data = convert(itemvalue, build_direction=build_direction, table_attributes=table_attributes)
@@ -168,6 +168,7 @@ def Http_Mail(emails, msg, filelist):
 	link = "<p><h3>报警对象影响范围图</h3></p><p>" + linkimg + "</p>"
 	suffix = "<hr><br>" + link + "<br><hr><b>" + team + "</b><br>主页: <a href=\"" + home + "\">" + home + "<br><hr><br>"
 	html = pre + html + suffix
+	html = re.sub('</?(ul|li)>','',html)
 	http_send_attachmail(emails, sub, html, filelist)
 
 def Mail(emails, msg):
