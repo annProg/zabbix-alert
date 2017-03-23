@@ -52,6 +52,9 @@ mail_suffix=config.get("send", "mail_suffix")
 name_replace=config.get("misc", "name_replace")
 debug=config.getboolean("misc", "debug")
 
+build_direction=config.get("http_mail", "build_direction")
+table_attributes=json.loads(config.get("http_mail", "table_attributes"))
+
 # 打印函数运行时间
 def fn_timer(debug=False):
 	def _timer(function):
@@ -158,9 +161,6 @@ def Http_Mail(emails, msg, filelist):
 	except:
 		pass
 
-	build_direction = "LEFT_TO_RIGHT"
-	table_attributes = {"style": "width:100%;border-collapse:collapse", "border": "1"}
-	#table_attributes = {"style": "width:100%;border:1px solid #000;", "border": "1"}
 	html = convert(newmsg, build_direction=build_direction, table_attributes=table_attributes)
 	html_data = convert(itemvalue, build_direction=build_direction, table_attributes=table_attributes)
 	html = "<h3>基本信息</h3>" + html + "<br><h3>监控项数据</h3>" + html_data
@@ -219,7 +219,7 @@ def killOneLineMsg(msg):
 		item = data[0]
 		newitem = {}
 		for k,v in item.items():
-			newitem[k] = "<center>" + k + "</center>"
+			newitem[k] = ""
 		msg['数据'].append(newitem)
 	return(msg)
 
@@ -373,7 +373,7 @@ def getImg(imgurl):
 if __name__ == '__main__':
 	#print(getContact("app", sys.argv[1]))
 	msg = init_DB(sys.argv[1])
-	#msg = killOneLineMsg(msg)
+	msg = killOneLineMsg(msg)
 	#print(json.dumps(msg))
 	ci_len = len(msg['名称'].split(","))
 	rankdir = "TB"

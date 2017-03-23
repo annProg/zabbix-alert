@@ -15,6 +15,9 @@ mail_attach = http://monitor.com/api/attachmail
 from = monitor@xxx.com
 ; graphviz绘图方向阈值，大于阈值LR，小于阈值TB(或相反)
 dir_threshold = 2
+build_direction = LEFT_TO_RIGHT
+; ini文件中%需要转义, 即 %%
+table_attributes = {"style": "width:100%%;border-collapse:collapse;empty-cells:hide", "border": "1"}
 
 [send]
 ; 逗号分隔
