@@ -148,10 +148,13 @@ def Http_Mail(emails, msg, filelist):
 	linkimg = newmsg['关联图']
 	itemvalue = {}
 	itemvalue['数据'] = newmsg['数据']
+	newmsg['状态'] += "&nbsp;&nbsp;" + newmsg['监控图表']
+	del newmsg['监控图表']
 	del newmsg['关联图']
 	del newmsg['数据']
 
-	pre = "详情请登录 <a href=\"" + dashhome + "\">" + dashhome + "</a><br/><hr>"
+	pre = "<hr>"
+	#pre = "详情请登录 <a href=\"" + dashhome + "\">" + dashhome + "</a><br/><hr>"
 	if status != "OK":
 		ackurl = genAckLink(newmsg)
 		if ackurl != "":
@@ -163,10 +166,12 @@ def Http_Mail(emails, msg, filelist):
 
 	html = convert(newmsg, build_direction=build_direction, table_attributes=table_attributes)
 	html_data = convert(itemvalue, build_direction=build_direction, table_attributes=table_attributes)
-	html = "<h3>基本信息</h3>" + html + "<br><h3>监控项数据</h3>" + html_data
+	html_first = '<table><tr><td style="width:60%">' + html + '</td><td style="width:40%">' + linkimg + "</td></tr></table>"
+	html = "<h3>基本信息</h3>" + html_first + "<br><h3>监控项数据</h3>" + html_data
 
 	link = "<p><h3>报警对象影响范围图</h3></p><p>" + linkimg + "</p>"
-	suffix = "<hr><br>" + link + "<br><hr><b>" + team + "</b><br>主页: <a href=\"" + home + "\">" + home + "<br><hr><br>"
+	suffix = "<br><p><hr><b>" + team + "</b><br>主页: <a href=\"" + home + "\">" + home + "<br><hr><br></p>"
+	#suffix = "<hr><br>" + link + "<br><hr><b>" + team + "</b><br>主页: <a href=\"" + home + "\">" + home + "<br><hr><br>"
 	html = pre + html + suffix
 	html = re.sub('</?(ul|li)>','',html)
 	http_send_attachmail(emails, sub, html, filelist)
@@ -346,15 +351,11 @@ def getDashBoard(msg):
 		dashs = []
 		urls = msg['名称'].split('\n')
 		dash_url = config.get('dashboard', 'url')
-		for url in urls:
-			detail_url = dash_url + "?var-monit_node=" + msg['监控点'] + \
-				"&var-app=" + msg['APP'] + "&var-url=" + url
-			dashs.append("<a href=\"" + detail_url + "\">" + dash_url + "</a>")
-		return('<br>'.join(dashs))
+		detail_url = dash_url + "?var-monit_node=" + msg['监控点'] + "&var-app=" + msg['APP']
 	else:
 		dash_url = config.get('dashboard', 'default')
 		detail_url = dash_url
-	data = "<a href=\"" + detail_url + "\">" + dash_url + "</a>"
+	data = "<a href=\"" + detail_url + "\">" + "点此查看监控图表</a>"
 	return(data)
 
 def getImg(imgurl):
@@ -392,7 +393,7 @@ if __name__ == '__main__':
 	msg['监控图表'] = getDashBoard(msg)
 	if imgurl != "":
 		imgname, filelist = getImg(imgurl)
-		msg['关联图'] = '<p><img class="aligncenter" src="cid:' + imgname + '" alt="对象影响图示" /></p>'
+		msg['关联图'] = '<img style="max-width:100%;max-height:100%" class="aligncenter" src="cid:' + imgname + '" alt="对象影响图示" />'
 	else:
 		filelist = []
 
