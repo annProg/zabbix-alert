@@ -281,7 +281,10 @@ def influxDB(contact, msg, sendtype="mail"):
 			config.get("influxdb","user"), config.get("influxdb", "passwd"), config.get("influxdb","database"))
 	client.create_database(config.get("influxdb", "database"))
 	
-	duration = msg["数据"][0]["故障时长"].split(">")[1].split("<")[0]
+	try:
+		duration = msg["数据"][0]["故障时长"].split(">")[1].split("<")[0]
+	except:
+		return("get duration failed")
 	duration = convertDuration(duration)
 	if "IP" in msg:
 		name = msg['IP'].split("\n")
@@ -395,7 +398,7 @@ if __name__ == '__main__':
 	msg['监控图表'] = getDashBoard(msg)
 	if imgurl != "":
 		imgname, filelist = getImg(imgurl)
-		msg['关联图'] = '<img style="max-width:100%;max-height:100%" class="aligncenter" src="cid:' + imgname + '" alt="对象影响图示" />'
+		msg['关联图'] = '<img style="width:100%;height:170px;max-height:100%" class="aligncenter" src="cid:' + imgname + '" alt="对象影响图示" />'
 	else:
 		filelist = []
 
