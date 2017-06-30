@@ -31,7 +31,6 @@ import copy
 import datetime
 import time
 
-
 #解析配置文件
 config = configparser.ConfigParser()
 config.read("conf.ini")   # 注意这里必须是绝对路径
@@ -55,6 +54,7 @@ debug=config.getboolean("misc", "debug")
 build_direction=config.get("http_mail", "build_direction")
 table_attributes=json.loads(config.get("http_mail", "table_attributes"))
 show_linkimg = config.getboolean("http_mail", "linkimg")
+attachimg = config.getboolean("http_mail", "attachimg")
 
 # 打印函数运行时间
 def fn_timer(debug=False):
@@ -167,8 +167,10 @@ def Http_Mail(emails, msg, filelist):
 
 	html = convert(newmsg, build_direction=build_direction, table_attributes=table_attributes)
 	html_data = convert(itemvalue, build_direction=build_direction, table_attributes=table_attributes)
-	if show_linkimg:
+	if attachimg and show_linkimg:
 		html = '<table><tr><td style="width:60%">' + html + '</td><td style="width:40%">' + linkimg + "</td></tr></table>"
+	if not attachimg:
+		filelist = []
 	html = "<h3>基本信息</h3>" + html + "<br><h3>监控项数据</h3>" + html_data
 
 	link = "<p><h3>报警对象影响范围图</h3></p><p>" + linkimg + "</p>"
@@ -318,7 +320,7 @@ def influxDB(contact, msg, sendtype="mail"):
 		json_body = [{"measurement":"ownercount","tags":{"owner":item,"sendtype":sendtype},"fields":{"value":1}}]
 		client.write_points(json_body)
 
-	#报警量统计(以'\n'拆分name之后，导致发送量统计增多，因此这里单独把发送量拿出来统计)
+	# 报警量统计(以'\n'拆分name之后，导致发送量统计增多，因此这里单独把发送量拿出来统计)
 	json_body = [{"measurement":"sendcount", "tags":{"sendtype":sendtype},"fields":{"value":1}}]
 	client.write_points(json_body)
 		
@@ -398,7 +400,7 @@ if __name__ == '__main__':
 	msg['监控图表'] = getDashBoard(msg)
 	if imgurl != "":
 		imgname, filelist = getImg(imgurl)
-		msg['关联图'] = '<img style="width:100%;height:170px;max-height:100%" class="aligncenter" src="cid:' + imgname + '" alt="对象影响图示" />'
+		msg['关联图'] = '<img style="max-width:100%;height:170px;max-height:100%" class="aligncenter" src="cid:' + imgname + '" alt="对象影响图示" />'
 	else:
 		filelist = []
 

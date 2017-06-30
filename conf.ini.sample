@@ -19,6 +19,8 @@ build_direction = LEFT_TO_RIGHT
 ; ini文件中%需要转义, 即 %%
 table_attributes = {"style": "width:100%%;border-collapse:collapse;empty-cells:hide", "border": "1"}
 linkimg = True
+; 是否发送图片
+attachimg = False
 
 [send]
 ; 逗号分隔
