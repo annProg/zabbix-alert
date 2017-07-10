@@ -48,7 +48,7 @@ def try_send(to, msg, agentid=1, token=token):
 
 def send_weixin(to, msg, agentid=1):
 	ret = try_send(to, msg, agentid)
-	if ret['errcode'] == 40014:
+	if ret['errcode'] != 0:
 		token = getToken()
 		ret = try_send(to, msg, agentid, token)
 		sendlog(ret['errmsg'],to, msg)
