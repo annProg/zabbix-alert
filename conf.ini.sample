@@ -1,5 +1,6 @@
 [cmdb]
 api = http://cmdb.xxx/api/public.php
+ruleapi = http://cmdb.xxx/api/alert.php
 iptype = default,disk,cpuload,zabbix自动注册
 url = http://cmdb.xxx
 
@@ -73,3 +74,10 @@ database = alertlog
 [misc]
 name_replace = .xxx.com
 debug = True
+
+; 报警自定义阈值
+[threshold]
+http_499/req_total = http_499_ratio
+http_500 = http_500_qps
+http_502 = http_502_qps
+http_504 = http_504_qps

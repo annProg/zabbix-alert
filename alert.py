@@ -39,6 +39,7 @@ email_default = config.get("send", "mailto_list")
 weixin_default = config.get("send", "weixin_list")
 sms_default = config.get("send", "sms_list")
 cmdbapi = config.get("cmdb", "api")
+ruleapi = config.get("cmdb", "ruleapi")
 dashhome = config.get("dashboard", "dashhome")
 home = config.get("dashboard", "home")
 team = config.get("dashboard", "team")
@@ -55,6 +56,13 @@ build_direction=config.get("http_mail", "build_direction")
 table_attributes=json.loads(config.get("http_mail", "table_attributes"))
 show_linkimg = config.getboolean("http_mail", "linkimg")
 attachimg = config.getboolean("http_mail", "attachimg")
+
+log="logs/alert.log"
+
+def alertlog(status, to_list, subject):
+	curdate = time.strftime('%F %X')
+	with open(log, 'a+') as f:
+		f.write(curdate + " " + status + " " + to_list + " " + subject + "\n")
 
 # 打印函数运行时间
 def fn_timer(debug=False):
@@ -281,7 +289,10 @@ def filter(json_body, client):
 def influxDB(contact, msg, sendtype="mail"):
 	client = InfluxDBClient(config.get("influxdb", "server"), config.get("influxdb", "port"), \
 			config.get("influxdb","user"), config.get("influxdb", "passwd"), config.get("influxdb","database"))
-	client.create_database(config.get("influxdb", "database"))
+	try:
+		client.create_database(config.get("influxdb", "database"))
+	except:
+		return False
 	
 	try:
 		duration = msg["数据"][0]["故障时长"].split(">")[1].split("<")[0]
@@ -378,9 +389,56 @@ def getImg(imgurl):
 	filelist.append(imgpath)
 	return(imgpath, filelist)
 
+def checkThreshold(msg):
+	k = msg['监控项']
+	Type = msg['类型']
+	value = msg['名称']
+	V = []
+	for item in msg['数据']:
+		i = item['Value']
+		i = i.split('/')
+		if(len(i) == 2):
+			i = float(i[0])/float(i[1])
+		else:
+			i = float(i[0])
+		V.append(i)
+	V = max(V)
+	url = ruleapi + "?type=" + Type + "&value=" + value
+	r = requests.get(url)
+	rule = r.json()
+	k = re.sub('\[.*?\]', '',k)
+	k = getConf('threshold', k)
+
+	# 没有定义规则的直接返回True(即达到阈值)
+	if k not in rule.keys():
+		return True
+	threshold = float(rule[k]['threshold'])
+	if V > threshold:
+		return True
+	else:
+		return False
+
+def ack(msg):
+	ackurl = genAckLink(msg)
+	ackurl = re.sub('index.php','ack.php', ackurl)
+	ackurl = ackurl + '&user=zabbix-alert&note=custom_threshold_filtered&deal=silence'
+	try:
+		requests.get(ackurl)
+	except:
+		pass
+
 if __name__ == '__main__':
 	#print(getContact("app", sys.argv[1]))
 	msg = init_DB(sys.argv[1])
+	status = msg['状态'].split(">")[1].split("<")[0]
+
+	# 非OK状态报警未达到阈值的直接退出
+	if status != "OK":
+		if not checkThreshold(msg):
+			alertlog("threshold filtered","",msg['主题'])
+			ack(msg)
+			sys.exit()
+
 	msg = killOneLineMsg(msg)
 	#print(json.dumps(msg))
 	ci_len = len(msg['名称'].split(","))
@@ -396,7 +454,6 @@ if __name__ == '__main__':
 		msg['名称'] = msg['名称'].replace(",","\n")
 	else:
 		msg['名称'] = msg['名称'].replace(name_replace,"").replace(",","\n")
-	status = msg['状态'].split(">")[1].split("<")[0]
 	msg['监控图表'] = getDashBoard(msg)
 	if imgurl != "":
 		imgname, filelist = getImg(imgurl)

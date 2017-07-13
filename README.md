@@ -40,5 +40,9 @@
 
 ![](preview/alertlog.png)
 
+## 自定义阈值
+由cmdb提供阈值查询接口，根据阈值决定是否发送报警，未达到阈值的，用zabbix ack接口将event设置为ack状态
+
 ## 附录
 报警联系人查询接口(cmdbApi)基于iTop实现，链接：[https://github.com/annProg/cmdbApi](https://github.com/annProg/cmdbApi)。
+
