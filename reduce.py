@@ -20,6 +20,7 @@ from alerttypes.disk import typeDisk
 from alerttypes.load import typeLoad
 from alerttypes.url import typeUrl
 from alerttypes.rds import typeRds
+from alerttypes.extends import typeExtends
 from alerttypes.autoregistration import typeAutoRegistration
 import logging
 import re
@@ -49,7 +50,9 @@ def run(msg):
 	is_disk = re.match(r'^文件系统:.*', msg['name']) # 磁盘空间告警
 	is_load = re.match(r'^CPU: 负载过高.*', msg['name']) # 负载高告警
 
-	if hostgroup_app in msg['hostgroup']:
+	if "hostgroup" not in msg.keys():
+		newmsg = typeExtends(msg)
+	elif hostgroup_app in msg['hostgroup']:
 		newmsg = typeApp(msg)
 	elif hostgroup_rds in msg['hostgroup']:
 		newmsg = typeRds(msg)
@@ -75,3 +78,4 @@ if __name__ == '__main__':
 		run(msg)
 	except:
 		logging.exception("Exception Logged")
+		print("exception occur")

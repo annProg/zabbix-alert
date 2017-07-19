@@ -81,3 +81,8 @@ http_499/req_total = http_499_ratio
 http_500 = http_500_qps
 http_502 = http_502_qps
 http_504 = http_504_qps
+
+; reduce api接口
+[api]
+host = 0.0.0.0
+port = 8081

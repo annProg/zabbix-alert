@@ -12,6 +12,7 @@ basedir=$(cd `dirname $0`; pwd)
 now=`date +%s`
 
 cd $basedir
+ps aux |grep "./api.py" |grep -v "grep" || ./api.py > logs/api.log 2>&1 &
 
 cd new
 for id in `ls`;do
