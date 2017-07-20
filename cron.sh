@@ -32,6 +32,10 @@ for id in `ls`;do
 	mod=`stat $id -c %Y`
 	((interval=now-mod))
 	[ $interval -gt $threshold ] && mv $id ../queue
+
+	# 超过30个数据项，直接发送, 防止某些报警连续发送一直达不到阈值
+	count=`cat $id |jq . |grep "name" |wc -l`;
+	[ $count -gt 30 ] && mv $id ../queue	
 done
 
 

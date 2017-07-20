@@ -47,7 +47,7 @@ def typeExtends(msg):
 			}
 	newmsg['数据'].append(data)
 
-	file_db = msg['title'] + "." + msg['status'] + "."  + msg['type'] + "." + msg['name'] + ".json"
+	file_db = msg['severity'] + "." + msg['title'] + "." + msg['status'] + "."  + msg['type'] + "." + msg['name'] + ".json"
 	file_db = file_db.replace(" ","-").replace("/","_")
 	
 	ret = {}
