@@ -433,11 +433,15 @@ if __name__ == '__main__':
 	status = msg['状态'].split(">")[1].split("<")[0]
 
 	# 非OK状态报警未达到阈值的直接退出
-	if status != "OK":
-		if not checkThreshold(msg):
-			alertlog("threshold filtered","",msg['主题'])
-			ack(msg)
-			sys.exit()
+	isThreshold = True
+	try:
+		isThreshold = checkThreshold(msg)
+	except:
+		pass
+	if status != "OK" and (not isThreshold):
+		alertlog("threshold filtered","",msg['主题'])
+		ack(msg)
+		sys.exit()
 
 	msg = killOneLineMsg(msg)
 	#print(json.dumps(msg))
