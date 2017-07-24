@@ -298,7 +298,11 @@ def influxDB(contact, msg, sendtype="mail"):
 		duration = msg["数据"][0]["故障时长"].split(">")[1].split("<")[0]
 	except:
 		return("get duration failed")
-	duration = convertDuration(duration)
+	
+	try:
+		duration = convertDuration(duration)
+	except:
+		duration = 0.0
 	if "IP" in msg:
 		name = msg['IP'].split("\n")
 	else:
