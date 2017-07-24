@@ -43,7 +43,8 @@ def typeExtends(msg):
 	data = {"name":msg['name'],  "监控项":msg['itemkey'], "Value":msg['itemvalue'], 
 			"严重性":msg['severity'], "故障时间":msg['start'], 
 			"当前时间":msg['now'],
-			"故障时长":"<span style=\"color:red; font-weight:bold;\">" + msg['age'] + "</span>"
+			"故障时长":"<span style=\"color:red; font-weight:bold;\">" + msg['age'] + "</span>",
+			"Note":msg['description']
 			}
 	newmsg['数据'].append(data)
 
