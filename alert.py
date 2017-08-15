@@ -401,10 +401,13 @@ def checkThreshold(msg):
 	for item in msg['数据']:
 		i = item['Value']
 		i = i.split('/')
-		if(len(i) == 2):
-			i = float(i[0])/float(i[1])
-		else:
-			i = float(i[0])
+		try:
+			if(len(i) == 2):
+				i = float(i[0])/float(i[1])
+			else:
+				i = float(i[0])
+		except:
+			i = 0.0
 		V.append(i)
 	V = max(V)
 	url = ruleapi + "?type=" + Type + "&value=" + value
