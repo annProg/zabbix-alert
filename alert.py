@@ -349,6 +349,10 @@ def sendAlert(contact,msg, filelist=[]):
 
 	msg['名称'] = msg['名称'].replace("\n", "<br>")
 	weixin_exclue = ['Notice']
+	weixin_include = ['Disaster']
+	if severity in weixin_include:
+		weixin = weixin + "|" + weixin_default.replace(",","|")
+
 	if severity not in weixin_exclue:
 		weret = Weixin(weixin, msg)
 		influxDB(emails, msg, "weixin")
