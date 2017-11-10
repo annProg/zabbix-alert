@@ -16,7 +16,7 @@ ps aux |grep "./api.py" |grep -v "grep" || ./api.py > logs/api.log 2>&1 &
 
 cd new
 for id in `ls`;do
-	severity=`echo $id |cut -f1 -d'.'`
+	severity=`echo $id |cut -f1 -d'.' |awk -F '_' '{print $NF}'`
 	trigger_status=`echo $id |cut -f2 -d'.'`
 	case $severity in
 		LoadWarn) threshold="180";;

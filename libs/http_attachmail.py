@@ -22,7 +22,6 @@ config.read("conf.ini")   # 注意这里必须是绝对路径
 
 mail_api=config.get("http_mail", "mail_attach")
 mail_from=config.get("http_mail", "from")
-cc_list=config.get("send", "mailcc_list")
 
 log="logs/http_mail.log"
 
@@ -31,7 +30,7 @@ def sendlog(status, to_list, subject):
 	with open(log, 'a+') as f:
 		f.write(curdate + " " + status + " " + to_list + " " + subject + "\n")
 
-def http_send_attachmail(to, sub, content, filelist=[], mail_format="html", mail_from=mail_from):
+def http_send_attachmail(to, cc, sub, content, filelist=[], mail_format="html", mail_from=mail_from):
 	attachNum = str(len(filelist))
 	attachs = {}
 	i = 1
@@ -40,7 +39,7 @@ def http_send_attachmail(to, sub, content, filelist=[], mail_format="html", mail
 		attachs[idx] = (attach, open(attach, "rb"))
 		i+=1
 	
-	fields = {"tos":to, "cc":cc_list, "subject":sub, "content":content, "from":mail_from, "format":mail_format, "attachNum":attachNum}
+	fields = {"tos":to, "cc":cc, "subject":sub, "content":content, "from":mail_from, "format":mail_format, "attachNum":attachNum}
 	fields = dict(fields, **attachs)
 	m = MultipartEncoder(fields)
 	headers = {"content-type":m.content_type}

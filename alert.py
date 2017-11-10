@@ -35,9 +35,6 @@ import time
 config = configparser.ConfigParser()
 config.read("conf.ini")   # 注意这里必须是绝对路径
 
-email_default = config.get("send", "mailto_list")
-weixin_default = config.get("send", "weixin_list")
-sms_default = config.get("send", "sms_list")
 cmdbapi = config.get("cmdb", "api")
 ruleapi = config.get("cmdb", "ruleapi")
 dashhome = config.get("dashboard", "dashhome")
@@ -97,8 +94,25 @@ def getConf(section, option):
 
 iptype = getConf("cmdb", "iptype").split(",")
 
+def parseSend(option, org_id):
+	ret = {}
+	for item in config.get("send", option).split("|"):
+		i = item.split("=")
+		ret[i[0]] = i[1]
+	try:
+		return ret[org_id]
+	except:
+		if option == "mailto_list":
+			return config.get("send", "mailcc_default")
+		else:
+			return ""
+
 @fn_timer(debug)
-def getContact(citype, civalue, rankdir="TB", ips=""):
+def getContact(citype, civalue, org_id, rankdir="TB", ips=""):
+	email_default = parseSend("mailto_list", org_id)
+	weixin_default = parseSend("weixin_list", org_id)
+	sms_default = parseSend("sms_list", org_id)
+
 	values = civalue
 	direction = "down"
 	if citype in iptype:
@@ -137,6 +151,10 @@ def getContact(citype, civalue, rankdir="TB", ips=""):
 				contact['email'].append(v['fields']['email'])
 			if v_mobile:
 				contact['mobile'].append(v['fields']['phone'])
+	
+	contact['weixin_default'] = weixin_default
+	contact['email_default'] = email_default
+	contact['sms_default'] = sms_default
 	return(contact, imgurl)
 
 def genAckLink(msg):
@@ -151,7 +169,7 @@ def genAckLink(msg):
 		return("")
 
 @fn_timer(debug)
-def Http_Mail(emails, msg, filelist):
+def Http_Mail(emails, cc, msg, filelist):
 	sub = status + ": " + msg['主题']
 	newmsg = copy.deepcopy(msg)
 	linkimg = newmsg['关联图']
@@ -186,9 +204,9 @@ def Http_Mail(emails, msg, filelist):
 	#suffix = "<hr><br>" + link + "<br><hr><b>" + team + "</b><br>主页: <a href=\"" + home + "\">" + home + "<br><hr><br>"
 	html = pre + html + suffix
 	html = re.sub('</?(ul|li)>','',html)
-	http_send_attachmail(emails, sub, html, filelist)
+	http_send_attachmail(emails, cc, sub, html, filelist)
 
-def Mail(emails, msg):
+def Mail(emails, cc, msg):
 	sub = status + ": " + msg['主题']
 
 	build_direction = "LEFT_TO_RIGHT"
@@ -198,7 +216,7 @@ def Mail(emails, msg):
 	pre = "详情请登录 <a href=\"" + dashhome + "\">" + dashhome + "</a><br/><hr>"
 	suffix = "<hr><br><br><hr><b>智能云平台 运维组</b><br>主页: <a href=\"" + home + "\">" + home + "<br><hr><br>"
 	html = pre + html + suffix
-	send_mail(emails, sub, html, 1)
+	send_mail(emails, cc, sub, html, 1)
 
 @fn_timer(debug)
 def SMS(mobiles, msg):
@@ -341,17 +359,19 @@ def influxDB(contact, msg, sendtype="mail"):
 		
 def sendAlert(contact,msg, filelist=[]):
 	emails = ",".join(list(set(",".join(contact['email']).split(","))))
+	cc = contact['email_default']
 	# mobiles 必须去重，公司的短信接口，同一次调用如果有相同的手机号，会返回000018(1分钟频率限制)
 	mobiles = ",".join(list(set(",".join(contact['mobile']).split(","))))
 	weixin = emails.replace(mail_suffix,"").replace(",","|")
 	weixin = re.sub('\d', '', weixin)
+	weixin_default = contact['weixin_default'].replace(",", "|")
 	severity = msg['严重性']
 
 	msg['名称'] = msg['名称'].replace("\n", "<br>")
 	weixin_exclue = ['Notice']
 	weixin_include = ['Disaster']
 	if severity in weixin_include:
-		weixin = weixin + "|" + weixin_default.replace(",","|")
+		weixin = weixin + "|" + weixin_default
 
 	if severity not in weixin_exclue:
 		weret = Weixin(weixin, msg)
@@ -366,7 +386,7 @@ def sendAlert(contact,msg, filelist=[]):
 			influxDB(emails, msg, "sms")
 		else:
 			msg['附加信息'] = "短信号码为空！请登录CMDB设置手机号，以便接收短信报警"
-	Http_Mail(emails, msg, filelist)
+	Http_Mail(emails, cc,  msg, filelist)
 	influxDB(emails, msg, 'mail')
 
 def getDashBoard(msg):
@@ -397,62 +417,12 @@ def getImg(imgurl):
 	filelist.append(imgpath)
 	return(imgpath, filelist)
 
-def checkThreshold(msg):
-	k = msg['监控项']
-	Type = msg['类型']
-	value = msg['名称']
-	V = []
-	for item in msg['数据']:
-		i = item['Value']
-		i = i.split('/')
-		try:
-			if(len(i) == 2):
-				i = float(i[0])/float(i[1])
-			else:
-				i = float(i[0])
-		except:
-			i = 0.0
-		V.append(i)
-	V = max(V)
-	url = ruleapi + "?type=" + Type + "&value=" + value
-	r = requests.get(url)
-	rule = r.json()
-	k = re.sub('\[.*?\]', '',k)
-	k = getConf('threshold', k)
-
-	# 没有定义规则的直接返回True(即达到阈值)
-	if k not in rule.keys():
-		return True
-	threshold = float(rule[k]['threshold'])
-	if V > threshold:
-		return True
-	else:
-		return False
-
-def ack(msg):
-	ackurl = genAckLink(msg)
-	ackurl = re.sub('index.php','ack.php', ackurl)
-	ackurl = ackurl + '&user=zabbix-alert&note=custom_threshold_filtered&deal=silence'
-	try:
-		requests.get(ackurl)
-	except:
-		pass
-
 if __name__ == '__main__':
 	#print(getContact("app", sys.argv[1]))
 	msg = init_DB(sys.argv[1])
-	status = msg['状态'].split(">")[1].split("<")[0]
+	org_id = sys.argv[1].split('_')[0]
 
-	# 非OK状态报警未达到阈值的直接退出
-	isThreshold = True
-	try:
-		isThreshold = checkThreshold(msg)
-	except:
-		pass
-	if status != "OK" and (not isThreshold):
-		alertlog("threshold filtered","",msg['主题'])
-		ack(msg)
-		sys.exit()
+	status = msg['状态'].split(">")[1].split("<")[0]
 
 	msg = killOneLineMsg(msg)
 	#print(json.dumps(msg))
@@ -461,10 +431,10 @@ if __name__ == '__main__':
 	if ci_len > int(dir_threshold):
 		rankdir = "LR"
 	if "IP" in msg:
-		contact, imgurl = getContact(msg['类型'], msg['名称'], rankdir, msg['IP'])
+		contact, imgurl = getContact(msg['类型'], msg['名称'], org_id, rankdir, msg['IP'])
 		msg['IP'] = msg['IP'].replace(",","\n")
 	else:
-		contact, imgurl = getContact(msg['类型'], msg['名称'], rankdir)
+		contact, imgurl = getContact(msg['类型'], msg['名称'], org_id, rankdir)
 	if msg['类型'] == 'url':
 		msg['名称'] = msg['名称'].replace(",","\n")
 	else:

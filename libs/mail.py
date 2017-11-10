@@ -26,8 +26,6 @@ mail_host=config.get("mailserver", "server")
 mail_user=config.get("mailserver", "user")
 mail_pass=config.get("mailserver", "passwd")
 mail_postfix=config.get("mailserver", "postfix")
-mailto_list=config.get("send", "mailto_list").split(",")
-mailcc_list=config.get("send", "mailcc_list").split(",")
 mail_suffix=config.get("send", "mail_suffix")
 
 
@@ -49,7 +47,7 @@ def addImg(src, imgid):
 		return(False)
 
 #定义send_mail函数
-def send_mail(to_list, sub, content, html=1, imgs=""):
+def send_mail(to_list, cc,  sub, content, html=1, imgs=""):
 	'''
 	to_list:发送列表，逗号分隔
 	sub:主题
@@ -80,8 +78,8 @@ def send_mail(to_list, sub, content, html=1, imgs=""):
 
 	to_list = to_list.split(",")
 	msg['To'] =";".join(to_list)
-	msg['Cc'] =";".join(mailcc_list)
-	toaddrs = to_list + mailcc_list #抄送人也要加入到sendmail函数的收件人参数中，否则无法收到
+	msg['Cc'] =";".join(cc)
+	toaddrs = to_list + cc #抄送人也要加入到sendmail函数的收件人参数中，否则无法收到
 	try:
 		s = smtplib.SMTP()
 		s.connect(mail_host)

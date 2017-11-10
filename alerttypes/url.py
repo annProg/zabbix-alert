@@ -23,8 +23,12 @@ config.read(cfg)   # 注意这里必须是绝对路径
 
 cmdb_url=config.get("cmdb", "url")
 
+sys.path.append('../')
+from libs.functions import *
+
 def typeUrl(msg):
 	app = msg['app']
+	org_id, check = checkThreshold("url", "app", app, msg['value'])
 
 	newmsg = {}
 	newmsg['类型'] = "url"
@@ -44,18 +48,13 @@ def typeUrl(msg):
 			"故障时长":"<span style=\"color:red; font-weight:bold;\">" + msg['age'] + "</span>"}
 	newmsg['数据'].append(data)
 
-	file_db = msg['severity'] + "." + msg['status'] + "." + msg['monitor_node'] + "." + app + ".json"
+	file_db = str(org_id) + "_" + msg['severity'] + "." + msg['status'] + "." + msg['monitor_node'] + "." + app + ".json"
 	file_db = file_db.replace(" ","-").replace("/","_").replace(":","_")
 	
 	ret = {}
 	ret['file_db'] = file_db
 	ret['data'] = newmsg
 	return(ret)
-
-def initMsg(msg):
-	msg = msg.replace("'", '"')
-	msg = json.loads(msg)
-	return msg
 
 if __name__ == '__main__':
 	msg = sys.argv[1]

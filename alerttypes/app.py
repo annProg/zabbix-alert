@@ -14,6 +14,9 @@ import os
 import sys
 import re
 
+sys.path.append('../')
+from libs.functions import *
+
 def typeApp(msg):
 	app = msg['itemkey'].split('[')[1].split(']')[0]
 
@@ -43,6 +46,13 @@ def typeApp(msg):
 			downtime = msg['downdate'] + " " + msg['downtime'] + " - " + msg['update'] + " " + msg['uptime']
 
 	newmsg = {}
+	org_id, check = checkThreshold(itemkey, "app", app, itemvalue)
+	# 未达到阈值直接退出
+	if not check:
+		filterlog("threshold filtered", "", msg['name'])
+		ack(msg['eventid'])
+		return False
+
 	newmsg['eventid'] = msg['eventid']
 	newmsg['类型'] = "app"
 	newmsg['名称'] = app
@@ -56,18 +66,13 @@ def typeApp(msg):
 			"故障时长":"<span style=\"color:red; font-weight:bold;\">" + msg['age'] + "</span>"}
 	newmsg['数据'].append(data)
 
-	file_db = msg['severity'] + "." + msg['status'] + "." + msg['name'] + ".json"
+	file_db = str(org_id) + "_" + msg['severity'] + "." + msg['status'] + "." + msg['name'] + ".json"
 	file_db = file_db.replace(" ","-").replace("/","_")
 	
 	ret = {}
 	ret['file_db'] = file_db
 	ret['data'] = newmsg
 	return(ret)
-
-def initMsg(msg):
-	msg = msg.replace("'", '"')
-	msg = json.loads(msg)
-	return msg
 
 if __name__ == '__main__':
 	msg = sys.argv[1]

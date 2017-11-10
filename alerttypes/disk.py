@@ -20,6 +20,9 @@ import os
 import sys
 import re
 
+sys.path.append('../')
+from libs.functions import *
+
 def typeDisk(msg):
 	grp = msg['hostgroup']
 	name = msg['hostname']
@@ -35,6 +38,13 @@ def typeDisk(msg):
 	trigger = " ".join(msg['name'].split(" ")[0:2]).split("，")[0]
 
 	newmsg = {}
+	org_id, check = checkThreshold(msg['itemkey'], "ip", msg['ip'], msg['itemvalue'])
+	# 未达到阈值直接退出
+	if not check:
+		filterlog("threshold filtered", "", msg['name'])
+		ack(msg['eventid'])
+		return False
+
 	newmsg['eventid'] = msg['eventid']
 	newmsg['类型'] = "disk"
 	newmsg['名称'] = name
@@ -49,18 +59,13 @@ def typeDisk(msg):
 			"故障时长":"<span style=\"color:red; font-weight:bold;\">" + msg['age'] + "</span>"}
 	newmsg['数据'].append(data)
 
-	file_db = "Information." + msg['status'] + "."  + newmsg['类型'] + "." + trigger + ".json"
+	file_db = str(org_id) + "_Information." + msg['status'] + "."  + newmsg['类型'] + "." + trigger + ".json"
 	file_db = file_db.replace(" ","-").replace("/","_")
 	
 	ret = {}
 	ret['file_db'] = file_db
 	ret['data'] = newmsg
 	return(ret)
-
-def initMsg(msg):
-	msg = msg.replace("'", '"')
-	msg = json.loads(msg)
-	return msg
 
 if __name__ == '__main__':
 	msg = sys.argv[1]

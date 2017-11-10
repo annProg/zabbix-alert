@@ -69,8 +69,9 @@ def run(msg):
 	else:
 		newmsg = typeDefault(msg)
 
-	path = fold_new + newmsg['file_db']
-	updateDB(path, newmsg['data'])
+	if newmsg:
+		path = fold_new + newmsg['file_db']
+		updateDB(path, newmsg['data'])
 
 if __name__ == '__main__':
 	try:

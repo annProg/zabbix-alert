@@ -24,12 +24,13 @@ linkimg = True
 attachimg = False
 
 [send]
-; 逗号分隔
+; 支持按组织发送 组织=联系人(逗号分隔)不同组织间 | 分隔
 mail_suffix = @qq.com
-mailto_list = abc@qq.com,cba@qq.com
-mailcc_list = def@qq.com,jack@qq.com
-weixin_list = abc,cba
-sms_list = 13000000000,13000000001
+mailto_list = 1=abc@qq.com,cba@qq.com|2=ad@c.com
+weixin_list = 1=abc,cba|2=ce
+sms_list = 1=13000000000,13000000001|2=140000000
+; 没有配置组织时发送到下面的邮箱
+mailcc_default = abc
 
 
 [sms]
