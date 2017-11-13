@@ -46,7 +46,7 @@ def http_send_attachmail(to, cc, sub, content, filelist=[], mail_format="html", 
 	r = requests.post(mail_api, data=m, headers=headers)
 	ret = r.json()
 	status = str(ret['status']) + "-" + ret['msg']
-	sendlog(status, to, sub)
+	sendlog(status, to + "|cc:" +cc, sub)
 	return ret
 
 if __name__ == '__main__':
