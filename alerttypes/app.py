@@ -37,13 +37,7 @@ def typeApp(msg):
 		itemvalue = msg['itemvalue']
 		itemkey = msg['itemkey']
 
-	if msg['status'] == "PROBLEM":
-		downtime = msg['downdate'] + " " + msg['downtime']
-	else:
-		if msg['downdate'] == msg['update']:
-			downtime = msg['downdate'] + " " + msg['downtime']  + "--" + msg['uptime']
-		else:
-			downtime = msg['downdate'] + " " + msg['downtime'] + " - " + msg['update'] + " " + msg['uptime']
+	downtime = getDownTime(msg)
 
 	newmsg = {}
 	org_id, check = checkThreshold(itemkey, "app", app, itemvalue)
@@ -62,7 +56,7 @@ def typeApp(msg):
 	newmsg['监控项'] = itemkey
 	newmsg['数据'] = []
 	data = {"主机":msg['hostname'], "Value":itemvalue, "严重性":msg['severity'], 
-			"故障时间":downtime, "当前时间":msg['date'] + " " + msg['time'], 
+			"故障时间":downtime, "当前时间":getDateTime(msg), 
 			"故障时长":"<span style=\"color:red; font-weight:bold;\">" + msg['age'] + "</span>"}
 	newmsg['数据'].append(data)
 

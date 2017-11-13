@@ -93,3 +93,29 @@ def ack(eventid):
 		requests.get(ackurl)
 	except:
 		pass
+
+def trimDate(d):
+	d = d.split('.')
+	return(d[1] + '/' + d[2])
+
+def trimTime(t):
+	t = t.split(':')
+	return(t[0] + ':' + t[1])
+
+def getDateTime(msg):
+	return(trimDate(msg['date']) + " " + trimTime(msg['time']))
+
+def getDownTime(msg):
+	d = msg['downdate']
+	t = msg['downtime']
+
+	if msg['status'] == "PROBLEM":
+		return(trimDate(d) + " " + trimTime(t))
+
+	upd = msg['update']
+	upt = msg['uptime']
+	if d == upd:
+		downtime = trimTime(t)  + "--" + trimTime(upt)
+	else:
+		downtime = trimDate(d) + " " + trimTime(t) + " - " + trimDate(upd)     + " " + trimTime(upt)
+	return(downtime)

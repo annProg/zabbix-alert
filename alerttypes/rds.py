@@ -18,13 +18,7 @@ def typeRds(msg):
 	grp = msg['hostgroup']
 	name = msg['hostname']
 
-	if msg['status'] == "PROBLEM":
-		downtime = msg['downdate'] + " " + msg['downtime']
-	else:
-		if msg['downdate'] == msg['update']:
-			downtime = msg['downdate'] + " " + msg['downtime']  + "--" + msg['uptime']
-		else:
-			downtime = msg['downdate'] + " " + msg['downtime'] + " - " + msg['update'] + " " + msg['uptime']
+	downtime = getDownTime(msg)
 
 	trigger = " ".join(msg['name'].split(" ")[0:2]).split("，")[0]
 
@@ -38,7 +32,7 @@ def typeRds(msg):
 	newmsg['数据'] = []
 	data = {"Value":msg['itemvalue'], 
 			"故障时间":downtime, 
-			"当前时间":msg['date'] + " " + msg['time'], 
+			"当前时间":getDateTime(msg), 
 			"故障时长":"<span style=\"color:red; font-weight:bold;\">" + msg['age'] + "</span>"}
 	newmsg['数据'].append(data)
 

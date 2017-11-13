@@ -27,13 +27,7 @@ def typeDisk(msg):
 	grp = msg['hostgroup']
 	name = msg['hostname']
 
-	if msg['status'] == "PROBLEM":
-		downtime = msg['downdate'] + " " + msg['downtime']
-	else:
-		if msg['downdate'] == msg['update']:
-			downtime = msg['downdate'] + " " + msg['downtime']  + "--" + msg['uptime']
-		else:
-			downtime = msg['downdate'] + " " + msg['downtime'] + " - " + msg['update'] + " " + msg['uptime']
+	downtime = getDownTime(msg)
 
 	trigger = " ".join(msg['name'].split(" ")[0:2]).split("，")[0]
 
@@ -53,9 +47,9 @@ def typeDisk(msg):
 	newmsg['主题'] = trigger
 	newmsg['状态'] = "<span style=\"color:red; font-weight:bold;\">" + msg['status'] + "</span>"
 	newmsg['数据'] = []
-	data = {"IP":msg['ip'],  "监控项":msg['itemkey'], "Value":msg['itemvalue'], 
+	data = {"IP":msg['ip'],  "监控项":msg['itemname'], "Value":msg['itemvalue'], 
 			"严重性":msg['severity'], "故障时间":downtime, 
-			"当前时间":msg['date'] + " " + msg['time'], 
+			"当前时间":getDateTime(msg), 
 			"故障时长":"<span style=\"color:red; font-weight:bold;\">" + msg['age'] + "</span>"}
 	newmsg['数据'].append(data)
 
