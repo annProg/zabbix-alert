@@ -42,23 +42,25 @@ function reduceServerAlert()
 
 cd new
 for id in `ls`;do
-	reduceServerAlert $id
 	severity=`echo $id |cut -f1 -d'.' |awk -F '_' '{print $NF}'`
 	trigger_status=`echo $id |cut -f2 -d'.'`
 	case $severity in
-		LoadWarn) threshold="180";;
+		LoadWarn) threshold="200";;
 		Information) threshold="480";;  # 此处值不应过大，需要参考step的间隔，过大可能导致告警一直达不到threshold
-		Warning) threshold="60";;
+		Warning) threshold="80";;
 		Average) threshold="50";;
 		High) threshold="40";;
-		*) threshold="40";;
+		*) threshold="60";;
 	esac
 
-	[ "$trigger_status"x = "OK"x ] && threshold="180"
+	[ "$trigger_status"x = "OK"x ] && threshold="240"
 
 	mod=`stat $id -c %Y`
 	((interval=now-mod))
-	[ $interval -gt $threshold ] && mv $id ../queue
+	if [ $interval -gt $threshold ];then
+		reduceServerAlert $id
+	   	mv $id ../queue
+	fi
 
 	# 超过30个数据项，直接发送, 防止某些报警连续发送一直达不到阈值
 	count=`cat $id |jq . |grep "name" |wc -l`;
