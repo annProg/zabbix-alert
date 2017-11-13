@@ -60,11 +60,11 @@ for id in `ls`;do
 	if [ $interval -gt $threshold ];then
 		reduceServerAlert $id
 	   	mv $id ../queue
+	else
+		# 超过30个数据项，直接发送, 防止某些报警连续发送一直达不到阈值
+		count=`cat $id |jq . |grep "name" |wc -l`;
+		[ $count -gt 30 ] && mv $id ../queue
 	fi
-
-	# 超过30个数据项，直接发送, 防止某些报警连续发送一直达不到阈值
-	count=`cat $id |jq . |grep "name" |wc -l`;
-	[ $count -gt 30 ] && mv $id ../queue
 done
 
 
