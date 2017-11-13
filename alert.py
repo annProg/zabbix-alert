@@ -444,6 +444,7 @@ if __name__ == '__main__':
 		imgname, filelist = getImg(imgurl)
 		msg['关联图'] = '<img style="max-width:100%;height:170px;max-height:100%" class="aligncenter" src="cid:' + imgname + '" alt="对象影响图示" />'
 	else:
+		msg['关联图'] = ""
 		filelist = []
 
 	sendAlert(contact, msg, filelist)

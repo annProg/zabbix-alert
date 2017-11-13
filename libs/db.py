@@ -53,4 +53,5 @@ def updateDB(file_db, msg):
 		json.dump(data, f, ensure_ascii=False)
 
 if __name__ == '__main__':
-	print(init_DB(sys.argv[1]))
+	updateDB(sys.argv[1], json.loads(sys.argv[2]))
+	#print(init_DB(sys.argv[1]))
