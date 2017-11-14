@@ -218,26 +218,13 @@ def Mail(emails, cc, msg):
 	html = pre + html + suffix
 	send_mail(emails, cc, sub, html, 1)
 
-@fn_timer(debug)
-def SMS(mobiles, msg):
+def shortMsg(msg):
 	values = []
 	for item in msg['数据']:
-		values.append(item['监控项'] + ":" + item['Value'])
-	value_str = "|".join(values)
-	content = "状态: " + status + "\n" + \
-		"主题: " + msg['主题'] + "\n" + \
-		"范围: " + msg['名称'] + "\n" + \
-		"Values: " + value_str + "\n" + \
-		"故障时间: " + msg['数据'][0]['故障时间'] + "\n" + \
-		"故障时长: " + msg['数据'][0]['故障时长'].split(">")[1].split("<")[0] + "\n" + \
-		"详情请查看邮件"
-	send_sms(mobiles, content)
-
-@fn_timer(debug)
-def Weixin(weixin, msg):
-	values = []
-	for item in msg['数据']:
-		values.append(item['监控项'] + ":" + item['Value'])
+		try:
+			values.append(item['监控项'] + ":" + item['Value'])
+		except:
+			values.append(item['Value'])
 	value_str = "|".join(values)[0:1500]  # 防止超出微信内容长度限制(2k)，超限会发送失败
 	content = "状态: " + status + "\n" + \
 			"主题: " + msg['主题'] + "\n" + \
@@ -246,6 +233,16 @@ def Weixin(weixin, msg):
 			"故障时间: " + msg['数据'][0]['故障时间'] + "\n" + \
 			"故障时长: " + msg['数据'][0]['故障时长'].split(">")[1].split("<")[0] + "\n" + \
 			"详情请查看邮件"
+	return(content)
+
+@fn_timer(debug)
+def SMS(mobiles, msg):
+	content = shortMsg(msg)
+	send_sms(mobiles, content)
+
+@fn_timer(debug)
+def Weixin(weixin, msg):
+	content = shortMsg(msg)
 	return(send_weixin(weixin, content))
 
 def killOneLineMsg(msg):
