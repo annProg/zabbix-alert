@@ -304,7 +304,7 @@ def filter(json_body, client):
 		return("write_points")
 	
 @fn_timer(debug)
-def influxDB(contact, msg, sendtype="mail"):
+def influxDB(org_id, contact, msg, sendtype="mail"):
 	client = InfluxDBClient(config.get("influxdb", "server"), config.get("influxdb", "port"), \
 			config.get("influxdb","user"), config.get("influxdb", "passwd"), config.get("influxdb","database"))
 	try:
@@ -333,6 +333,7 @@ def influxDB(contact, msg, sendtype="mail"):
 		json_body = [{
 					"measurement":"alert",
 					"tags": {
+						"org":org_id,
 						"sendtype":sendtype,
 						"subject":msg['主题'],
 						"owner":owner,
@@ -357,7 +358,7 @@ def influxDB(contact, msg, sendtype="mail"):
 	json_body = [{"measurement":"sendcount", "tags":{"sendtype":sendtype},"fields":{"value":1}}]
 	client.write_points(json_body)
 		
-def sendAlert(contact,msg, filelist=[]):
+def sendAlert(org_id, contact, msg, filelist=[]):
 	emails = ",".join(list(set(",".join(contact['email']).split(","))))
 	cc = contact['email_default']
 	# mobiles 必须去重，公司的短信接口，同一次调用如果有相同的手机号，会返回000018(1分钟频率限制)
@@ -375,7 +376,7 @@ def sendAlert(contact,msg, filelist=[]):
 
 	if severity not in weixin_exclue:
 		weret = Weixin(weixin, msg)
-		influxDB(emails, msg, "weixin")
+		influxDB(org_id, emails, msg, "weixin")
 		if weret['errcode'] != 0:
 			msg['附加信息2'] = "微信发送失败，请关注公众号"
 
@@ -383,11 +384,11 @@ def sendAlert(contact,msg, filelist=[]):
 	if severity in sms_severity:
 		if mobiles:
 			SMS(mobiles, msg)
-			influxDB(emails, msg, "sms")
+			influxDB(org_id, emails, msg, "sms")
 		else:
 			msg['附加信息'] = "短信号码为空！请登录CMDB设置手机号，以便接收短信报警"
 	Http_Mail(emails, cc,  msg, filelist)
-	influxDB(emails, msg, 'mail')
+	influxDB(org_id, emails, msg, 'mail')
 
 def getDashBoard(msg):
 	if msg['类型'] == "app":
@@ -447,4 +448,4 @@ if __name__ == '__main__':
 		msg['关联图'] = ""
 		filelist = []
 
-	sendAlert(contact, msg, filelist)
+	sendAlert(org_id, contact, msg, filelist)
