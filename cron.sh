@@ -11,6 +11,9 @@
 basedir=$(cd `dirname $0`; pwd)
 now=`date +%s`
 
+name_replace=`grep "name_replace" $basedir/conf.ini |awk '{print $NF}'`
+mailcc_default=`grep "mailcc_default" $basedir/conf.ini |awk '{print $NF}'`
+
 cd $basedir
 
 ps aux |grep "./api.py" |grep -v "grep" || ./api.py > logs/api.log 2>&1 &
@@ -26,10 +29,9 @@ function reduceServerAlert()
 		isIp=`echo $data|jq '.[0]' |jq 'has("IP")'`
 		if [ "$isIp"x == "true"x ];then
 			ip=`echo $data | jq '.[0]' |jq .IP |tr -d '"'`
-			hostname=`cat $1 |jq '.["名称"]' |tr -d '"'`
+			hostname=`cat $1 |jq '.["名称"]' |tr -d '"' |sed "s/$name_replace//g"`
 			file_new="`echo $1 |cut -f1,2 -d'.'`.${ip}.json"
 			msg=`cat $1 |jq --arg title "$hostname" '.["主题"] |="服务器异常"+$title' |jq -c -M '.["类型"] |="reduce"'`
-			echo $msg
 			IFS="|"
 			python3 $basedir/libs/db.py $file_new $msg
 
@@ -73,5 +75,5 @@ cd ..
 for id in `ls queue/`;do
 	./alert.py "queue/$id"
 	[ $? -eq 0 ] && mv queue/$id old || mv queue/$id failed
-	#[ $? -eq 0 ] && mv queue/$id old || echo "$id 发送失败" | mail -s "$id 发送失败" xxx@xx.com
+	#[ $? -eq 0 ] && mv queue/$id old || echo "$id 发送失败" | mail -s "$id 发送失败" $mailcc_default
 done
