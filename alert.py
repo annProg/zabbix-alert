@@ -351,11 +351,11 @@ def influxDB(org_id, contact, msg, sendtype="mail"):
 
 	# 以个人为单位统计报警量
 	for item in ownerlist:
-		json_body = [{"measurement":"ownercount","tags":{"owner":item,"sendtype":sendtype},"fields":{"value":1}}]
+		json_body = [{"measurement":"ownercount","tags":{"org":org_id,"owner":item,"sendtype":sendtype},"fields":{"value":1}}]
 		client.write_points(json_body)
 
 	# 报警量统计(以'\n'拆分name之后，导致发送量统计增多，因此这里单独把发送量拿出来统计)
-	json_body = [{"measurement":"sendcount", "tags":{"sendtype":sendtype},"fields":{"value":1}}]
+	json_body = [{"measurement":"sendcount", "tags":{"org":org_id,"sendtype":sendtype},"fields":{"value":1}}]
 	client.write_points(json_body)
 		
 def sendAlert(org_id, contact, msg, filelist=[]):
