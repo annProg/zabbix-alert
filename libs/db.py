@@ -11,6 +11,7 @@
 
 import json
 import sys
+import fcntl
 
 def init_DB(file_db):
 	try:
@@ -50,7 +51,9 @@ def updateDB(file_db, msg):
 		data = db
 
 	with open(file_db, 'w') as f:
+		fcntl.flock(f, fcntl.LOCK_EX)
 		json.dump(data, f, ensure_ascii=False)
+		fcntl.flock(f, fcntl.LOCK_UN)
 
 if __name__ == '__main__':
 	updateDB(sys.argv[1], json.loads(sys.argv[2]))
