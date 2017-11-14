@@ -222,7 +222,7 @@ def Mail(emails, cc, msg):
 def SMS(mobiles, msg):
 	values = []
 	for item in msg['数据']:
-		values.append(item['Value'])
+		values.append(item['监控项'] + ":" + item['Value'])
 	value_str = "|".join(values)
 	content = "状态: " + status + "\n" + \
 		"主题: " + msg['主题'] + "\n" + \
@@ -237,7 +237,7 @@ def SMS(mobiles, msg):
 def Weixin(weixin, msg):
 	values = []
 	for item in msg['数据']:
-		values.append(item['Value'])
+		values.append(item['监控项'] + ":" + item['Value'])
 	value_str = "|".join(values)[0:1500]  # 防止超出微信内容长度限制(2k)，超限会发送失败
 	content = "状态: " + status + "\n" + \
 			"主题: " + msg['主题'] + "\n" + \
