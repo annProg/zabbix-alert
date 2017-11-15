@@ -15,18 +15,10 @@ import fcntl
 
 def init_DB(file_db):
 	try:
-		f = open(file_db, 'r')
-	except:
-		f = open(file_db, 'w')
-	finally:
-		if f:
-			f.close()
-
-	with open(file_db, 'r') as f:
-		try:
+		with open(file_db, 'r') as f:
 			db = json.load(f)
-		except:
-			db = {}
+	except:
+		db = {}
 	return(db)
 
 def updateDB(file_db, msg):
