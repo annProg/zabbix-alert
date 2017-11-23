@@ -41,6 +41,17 @@ function reduceServerAlert()
 	fi
 }
 
+function reduceLoadWarn()
+{
+	length=`cat $1 |jq -c -M '.["数据"]' |jq 'length'`
+	interval=$2
+	if [ $length -lt 5 ] && [ $interval -lt 600 ];then
+		echo "reduceloadwarn"
+		continue
+	else
+		return 0
+	fi
+}
 
 cd new
 for id in `ls`;do
@@ -60,6 +71,7 @@ for id in `ls`;do
 	mod=`stat $id -c %Y`
 	((interval=now-mod))
 	if [ $interval -gt $threshold ];then
+		reduceLoadWarn $id $interval
 		reduceServerAlert $id
 	   	mv $id ../queue
 	else
