@@ -71,7 +71,7 @@ for id in `ls`;do
 	mod=`stat $id -c %Y`
 	((interval=now-mod))
 	if [ $interval -gt $threshold ];then
-		reduceLoadWarn $id $interval
+		[ "$severity"x == "LoadWarn"x ] && reduceLoadWarn $id $interval
 		reduceServerAlert $id
 	   	mv $id ../queue
 	else
