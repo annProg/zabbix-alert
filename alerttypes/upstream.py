@@ -14,6 +14,9 @@ import os
 import sys
 import re
 
+sys.path.append('../')
+from libs.functions import *
+
 def typeUpstream(msg):
 	# cmdbApi中type用app，从upstream名称中截取出app名称
 	# newmsg['类型'] 需要设置为 app，以便调用cmdbApi获取联系人
