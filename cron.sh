@@ -22,6 +22,7 @@ function reduceServerAlert()
 {
 	tp=`cat $1 |jq -c -M '.["类型"]' |tr -d '"'`
 	[ "$tp"x == "reduce"x ] && return
+	[ "$tp"x == "zabbix自动注册"x ] && return
 
 	data=`cat $1 |jq -c -M '.["数据"]'`
 	length=`echo $data|jq 'length'`
