@@ -14,6 +14,9 @@ import os
 import sys
 import re
 
+sys.path.append('../')
+from libs.functions import *
+
 def typeRds(msg):
 	grp = msg['hostgroup']
 	name = msg['hostname']
