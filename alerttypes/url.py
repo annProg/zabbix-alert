@@ -26,6 +26,12 @@ cmdb_url=config.get("cmdb", "url")
 sys.path.append('../')
 from libs.functions import *
 
+def parseUrl(url):
+	o = url.split('/')
+	location = '/'.join(o[3:])
+	domain = o[2]
+	return [domian,location]
+
 def typeUrl(msg):
 	app = msg['app']
 	org_id, check = checkThreshold("url", "app", app, msg['value'])
@@ -40,10 +46,10 @@ def typeUrl(msg):
 	newmsg['监控点'] = msg['monitor_node']
 	newmsg['APP'] = app
 	newmsg['数据'] = []
-	url_cmdb = "<a href=\"" + cmdb_url + "/pages/UI.php?operation=details&class=Url&id=" + \
-		msg['cmdbid'] + "\">" + "(" + msg['cmdbid'] + ")&nbsp;&nbsp;" + msg['url'] + "</a>"
+	url_cmdb = "CMDB配置: &nbsp;<a href=\"" + cmdb_url + "/pages/UI.php?operation=details&class=Url&id=" + \
+			msg['cmdbid'] + "\">" + msg['cmdbid'] + "</a><br>" + "Location:&nbsp;" + parseUrl(msg['url'])[1]
 
-	data = {"URL":url_cmdb, "Value":msg['value'], 
+	data = {"URL":url_cmdb, "Value(配置/实际)":msg['value'], 
 			"故障时间":msg['downtime'], "当前时间":msg['datetime'],
 			"故障时长":"<span style=\"color:red; font-weight:bold;\">" + msg['age'] + "</span>"}
 	newmsg['数据'].append(data)
