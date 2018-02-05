@@ -110,11 +110,11 @@ def main(data):
 		alert['rt'] = "UNKNOWN"
 
 	if re.search(r'^HTTP_CODE:.*', alert['name']):
-		alert['value'] = "【HTTP状态码检查】cmdb配置:" + details['Fields']['require_code.last'] + "<br>实际返回:" + str(alert['code'])
+		alert['value'] = "CodeRequired:" + details['Fields']['require_code.last'] + "<br>CodeReal:" + str(alert['code'])
 	elif re.search(r'^RESPONSE_DATA:.*', alert['name']):
-		alert['value'] = "【返回数据检查】cmdb配置:" + details['Fields']['require_str.last'] + "<br>错误信息:" + alert['msg']
+		alert['value'] = "DataRequired:" + details['Fields']['require_str.last'] + "<br>DataReal:" + alert['msg']
 	else:
-		alert['value'] = "【响应时间检查】cmdb配置:" + details['Fields']['require_time.last'] + "<br>实际返回:" + alert['rt']
+		alert['value'] = "TimeRequired:" + details['Fields']['require_time.last'] + "<br>TimeReal:" + alert['rt']
 
 	argstr = json.dumps(alert)
 
