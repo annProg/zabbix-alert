@@ -30,7 +30,7 @@ def parseUrl(url):
 	o = url.split('/')
 	location = '/'.join(o[3:])
 	domain = o[2]
-	return [domian,location]
+	return [domain,location]
 
 def typeUrl(msg):
 	app = msg['app']
