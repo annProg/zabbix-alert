@@ -54,7 +54,7 @@ def typeUrl(msg):
 	newmsg['APP'] = app
 	newmsg['数据'] = []
 	url_cmdb = "CMDB: <a href=\"" + cmdb_url + "/pages/UI.php?operation=details&class=Url&id=" + \
-			msg['cmdbid'] + "\">" + msg['cmdbid'] + "</a><br>" + "Location: " + 
+			msg['cmdbid'] + "\">" + msg['cmdbid'] + "</a><br>" + "Location: " + \
 			'<a href="' + msg['url'] + '">' + parseUrl(msg['url'])[1] + '</a>'
 
 	data = {"URL":url_cmdb, "Value":msg['value'], 
