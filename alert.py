@@ -173,8 +173,7 @@ def Http_Mail(emails, cc, msg, filelist):
 	sub = status + ": " + msg['主题']
 	newmsg = copy.deepcopy(msg)
 	linkimg = newmsg['关联图']
-	itemvalue = {}
-	itemvalue['数据'] = newmsg['数据']
+	itemvalue = json.dumps(newmsg['数据'], sort_keys=True)
 	newmsg['状态'] += "&nbsp;&nbsp;" + newmsg['监控图表']
 	del newmsg['监控图表']
 	del newmsg['关联图']
