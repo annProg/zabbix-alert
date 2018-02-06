@@ -418,6 +418,8 @@ if __name__ == '__main__':
 	#print(getContact("app", sys.argv[1]))
 	msg = init_DB(sys.argv[1])
 	org_id = sys.argv[1].split('_')[0].split('/')[-1]
+	if not re.match('^[0-9]+$', org_id):
+		org_id = "0"
 
 	status = msg['状态'].split(">")[1].split("<")[0]
 
