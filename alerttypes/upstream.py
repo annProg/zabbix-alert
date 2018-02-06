@@ -63,7 +63,8 @@ def typeUpstream(msg):
 			"故障时长":"<span style=\"color:red; font-weight:bold;\">" + msg['age'] + "</span>"}
 	newmsg['数据'].append(data)
 
-	file_db = newmsg['严重性'] + "." + msg['status'] + ".upstream异常." + newmsg['类型'] + "." + app + ".json"
+	org_id, check = checkThreshold(itemkey, "app", app, itemvalue)
+	file_db = str(org_id) + "_" + newmsg['严重性'] + "." + msg['status'] + ".upstream异常." + newmsg['类型'] + "." + app + ".json"
 	file_db = file_db.replace(" ","-").replace("/","_")
 	
 	ret = {}
