@@ -69,11 +69,12 @@ for id in `ls`;do
 
 	[ "$trigger_status"x = "OK"x ] && threshold="240"
 
+	reduceServerAlert $id
+
 	mod=`stat $id -c %Y`
 	((interval=now-mod))
 	if [ $interval -gt $threshold ];then
 		[ "$severity"x == "LoadWarn"x ] && reduceLoadWarn $id $interval
-		reduceServerAlert $id
 	   	mv $id ../queue
 	else
 		# 超过30个数据项，直接发送, 防止某些报警连续发送一直达不到阈值
