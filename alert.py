@@ -278,10 +278,10 @@ def filter(json_body, client):
 		client.write_points(json_body)
 		return "Not OK or Not app. write_points"
 
-	sql = 'SELECT "duration" from ' + measurement + ' WHERE subject = \'' + subject + '\' AND status = \'' + \
+	sql = 'SELECT "duration" from ' + measurement + ' WHERE time > now() - 5m AND subject = \'' + subject + '\' AND status = \'' + \
 			status + '\' AND sendtype = \'' + sendtype + '\' ORDER BY DESC limit 1'
-	ret = client.query(sql)
 	try:
+		ret = client.query(sql)
 		ret = list(ret)[0][0]
 	except:
 		client.write_points(json_body)
@@ -302,7 +302,7 @@ def filter(json_body, client):
 @fn_timer(debug)
 def influxDB(org_id, contact, msg, sendtype="mail"):
 	client = InfluxDBClient(config.get("influxdb", "server"), config.get("influxdb", "port"), \
-			config.get("influxdb","user"), config.get("influxdb", "passwd"), config.get("influxdb","database"))
+			config.get("influxdb","user"), config.get("influxdb", "passwd"), config.get("influxdb","database"), timeout=2)
 	try:
 		client.create_database(config.get("influxdb", "database"))
 	except:
